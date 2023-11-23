@@ -9,9 +9,10 @@ import seaborn as sns
 from pathlib import Path
 from log import write_logs, LogStatus
 
+
 def visualize_family_sizes(train_targets: pd.Series, save: bool, display: bool, output_dir: Union[str, Path]) -> None:
 
-    write_logs(f"Ploting family sizes", LogStatus.INFO, False)
+    write_logs("Ploting family sizes", LogStatus.INFO, False)
     sorted_targets = train_targets.groupby(train_targets).size().sort_values(ascending=False)
 
     plt.figure()
@@ -36,7 +37,7 @@ def visualize_sequence_lengths(
     display: bool = True,
     output_dir: Union[str, Path] = None,
 ) -> None:
-    write_logs(f"Ploting sequence lengths", LogStatus.INFO, False)
+    write_logs("Ploting sequence lengths", LogStatus.INFO, False)
     sequence_lengths = train_data.str.len()
     median = sequence_lengths.median()
     mean = sequence_lengths.mean()
@@ -65,7 +66,7 @@ def visualize_aa_frequencies(
     display: bool = True,
     output_dir: Union[str, Path] = None,
 ) -> None:
-    write_logs(f"Ploting aa frequencies", LogStatus.INFO, False)
+    write_logs("Ploting aa frequencies", LogStatus.INFO, False)
     f, ax = plt.subplots(figsize=(8, 5))
 
     pal = sns.husl_palette(len(amino_acid_counter))

@@ -8,6 +8,7 @@ from data.data_loader import (
     get_amino_acid_frequencies,
     build_vocab,
     SequenceDataset,
+    create_data_loaders,
 )
 from data.plot import (
     visualize_aa_frequencies,
@@ -41,15 +42,13 @@ def load_data(args):
         word2id, fam2label, args.seq_max_len, args.data_path, "test"
     )
 
+    dataloaders = create_data_loaders(train_dataset, dev_dataset, test_dataset, args.batch_size, args.num_workers)
+
     return (
         train_data,
         train_targets,
-        fam2label,
         amino_acid_counter,
-        word2id,
-        train_dataset,
-        dev_dataset,
-        test_dataset,
+        dataloaders,
     )
 
 
@@ -63,12 +62,8 @@ def main():
     (
         train_data,
         train_targets,
-        fam2label,
         amino_acid_counter,
-        word2id,
-        train_dataset,
-        dev_dataset,
-        test_dataset,
+        dataloaders,
     ) = load_data(args)
 
     # Visualisations
