@@ -9,7 +9,7 @@ from data.data_loader import (
     build_vocab,
     SequenceDataset,
 )
-from data.visualizer import (
+from data.plot import (
     visualize_aa_frequencies,
     visualize_sequence_lengths,
     visualize_family_sizes,
