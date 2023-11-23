@@ -76,7 +76,6 @@ def visualize_aa_frequencies(
         ax=ax,
         palette=pal,
         hue="AA",
-        legend=False,
     )
 
     plt.title("Distribution of AAs' frequencies in the 'train' split")
