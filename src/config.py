@@ -54,6 +54,15 @@ def parse_args() -> argparse.Namespace:
                             type=int, default=25,
                             help='Number of training epochs')
 
+    # Command line arguments for plots
+    plots_args = parser.add_argument_group('Plots arguments')
+    plots_args.add_argument('--display_plots',
+                            type=int, default=0,
+                            help='Display plots')
+    plots_args.add_argument('--save_plots',
+                            type=int, default=1,
+                            help='Save plots in output folder')
+
     return parser.parse_args()
 
 
@@ -92,6 +101,8 @@ def check_arguments(options: argparse.Namespace) -> None:
     check_float_range(options.lr, 'learning rate', 0, 1)
     check_float_range(options.momentum, 'momentum', 0, 1)
     check_positive_integer(options.epochs, 'number of epochs')
+    check_float_range(options.display_plots, 'display plots', 0, 1)
+    check_float_range(options.save_plots, 'save plots', 0, 1)
 
     # Check if log_path and output_path are writable
     try:
