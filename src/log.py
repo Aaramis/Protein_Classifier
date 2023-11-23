@@ -3,7 +3,7 @@ import sys
 import subprocess
 import os
 from version import __version__
-from typing import Any
+from typing import Any, Optional
 from enum import Enum, auto
 try:
     from rich import print as rprint
@@ -11,11 +11,13 @@ except ImportError:
     def rprint(message):
         print(message)
 
+
 class LogStatus(Enum):
     INFO = auto()
     DEBUG = auto()
     WARNING = auto()
     CRITICAL = auto()
+
 
 LOG_LEVELS = {
     LogStatus.INFO: logging.info,
@@ -23,6 +25,7 @@ LOG_LEVELS = {
     LogStatus.WARNING: logging.warning,
     LogStatus.CRITICAL: logging.critical
 }
+
 
 def configure_logging(log_file: str) -> None:
     """Configure logging."""
@@ -34,30 +37,46 @@ def configure_logging(log_file: str) -> None:
         filemode='w'
     )
 
+
 def log_version_info() -> None:
     """Log version information."""
     last_commit = os.popen('git rev-parse HEAD').read().strip()
     write_logs(msg=f"Last commit: {last_commit}", status=LogStatus.INFO)
     write_logs(msg=f"Generate Reference version: {__version__}", status=LogStatus.INFO)
 
+
 def log_command_line() -> None:
     """Log the command line."""
     cmd_line = f"Running command: python {subprocess.list2cmdline(sys.argv)}"
     write_logs(msg=cmd_line, status=LogStatus.INFO)
 
+
+def check_directory(path: Optional[str], description: str) -> None:
+    """Check if the directory exists or create it."""
+    if path:
+        if not os.path.exists(path):
+            os.makedirs(path)
+        elif not os.path.isdir(path):
+            write_logs(f"'{path}' is not a valid {description}. EXIT",
+                       LogStatus.CRITICAL, True)
+
+
 def initialize_logging(options: Any) -> None:
+    check_directory(options.log_path, 'log directory')
     log_file = os.path.join(options.log_path, f'{".log"}')
     configure_logging(log_file)
     log_version_info()
     log_command_line()
 
+
 def write_logs(msg: str, status: LogStatus, echo: bool = False) -> None:
     """Print and log messages for reproducibility."""
     log_function = LOG_LEVELS.get(status, logging.info)
     log_function(msg)
-    
+
     if echo:
         print_message(msg, status)
+
 
 def print_message(msg: str, status: LogStatus) -> None:
     """Print messages for reproducibility."""

@@ -7,3 +7,5 @@ tensorboard
 torch
 torchmetrics
 rich
+pytest
+flake8

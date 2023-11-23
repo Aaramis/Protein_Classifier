@@ -1,10 +1,11 @@
-from typing import Optional
 import argparse
 import os
 import torch
-from log import write_logs, LogStatus
+from log import write_logs, check_directory, LogStatus
+
 
 def parse_args() -> argparse.Namespace:
+
     parser = argparse.ArgumentParser(description='Protein Classifier Configuration')
 
     # Command line arguments for directory
@@ -55,14 +56,6 @@ def parse_args() -> argparse.Namespace:
 
     return parser.parse_args()
 
-def check_directory(path: Optional[str], description: str) -> None:
-    """Check if the directory exists or create it."""
-    if path:
-        if not os.path.exists(path):
-            os.makedirs(path)
-        elif not os.path.isdir(path):
-            write_logs(f"'{path}' is not a valid {description}. EXIT",
-                       LogStatus.CRITICAL, True)
 
 def check_positive_integer(value: int, name: str) -> None:
     """Check if the value is a positive integer."""
@@ -70,11 +63,13 @@ def check_positive_integer(value: int, name: str) -> None:
         write_logs(f"Invalid {name}: {value}. It should be a positive integer.",
                    LogStatus.CRITICAL, True)
 
+
 def check_float_range(value: float, name: str, min_val: float = 0, max_val: float = 1) -> None:
     """Check if the float value is within the specified range."""
     if value < min_val or value > max_val:
         write_logs(f"Invalid {name}: {value}. It should be between {min_val} and {max_val}.",
                    LogStatus.CRITICAL, True)
+
 
 def check_arguments(options: argparse.Namespace) -> None:
     """Validate the arguments"""
@@ -86,11 +81,9 @@ def check_arguments(options: argparse.Namespace) -> None:
     if options.gpus > 0 and not torch.cuda.is_available():
         available_gpu_count = torch.cuda.device_count()
         if not available_gpu_count:
-            write_logs("GPU not available, training will be performed on CPU.",
-                    LogStatus.WARNING, True)
+            write_logs("GPU not available, training will be performed on CPU.", LogStatus.WARNING, True)
         elif options.gpus != available_gpu_count:
-            write_logs("GPU are not optimized",
-                    LogStatus.WARNING, True)            
+            write_logs("GPU are not optimized", LogStatus.WARNING, True)
 
     check_positive_integer(options.batch_size, 'batch size')
     check_positive_integer(options.num_workers, 'num workers')
