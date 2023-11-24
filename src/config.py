@@ -8,7 +8,7 @@ def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description='Protein Classifier Configuration')
 
-    # Command line arguments for directory
+    # Command line arguments for directory adnf iles
     main_args = parser.add_argument_group('Directory arguments')
     main_args.add_argument('--data_path',
                            type=str,
@@ -22,10 +22,22 @@ def parse_args() -> argparse.Namespace:
                            type=str,
                            default=os.path.abspath('./output'),
                            help='Path to the output directory')
+    main_args.add_argument('--model_path',
+                           type=str,
+                           default=os.path.abspath('./models'),
+                           help='Path to the model')
+    main_args.add_argument('--model_name',
+                           type=str,
+                           default='prot_cnn_model.pt',
+                           help='Model name')
 
     # Command line arguments for hyperparameters
     model_args = parser.add_argument_group('Models hyperparameters arguments')
 
+    model_args.add_argument("--train", action="store_true",
+                            help="Flag to trigger training.")
+    model_args.add_argument("--test", action="store_true",
+                            help="Flag to trigger testing.")
     model_args.add_argument('--seq_max_len',
                             type=int, default=120,
                             help='Maximum length of sequences')
@@ -60,7 +72,7 @@ def parse_args() -> argparse.Namespace:
                             type=int, default=0,
                             help='Display plots')
     plots_args.add_argument('--save_plots',
-                            type=int, default=1,
+                            type=int, default=0,
                             help='Save plots in output folder')
 
     return parser.parse_args()
@@ -85,6 +97,7 @@ def check_arguments(options: argparse.Namespace) -> None:
     check_directory(options.data_path, 'data directory')
     check_directory(options.log_path, 'log directory')
     check_directory(options.output_path, 'output directory')
+    check_directory(options.model_path, 'model directory')
 
     # Check if the specified GPUs are available
     if options.gpus > 0 and not torch.cuda.is_available():

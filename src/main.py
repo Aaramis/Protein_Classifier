@@ -1,7 +1,10 @@
-# main.py
-
+import os
+import logging
+import timeit
+import pytorch_lightning as pl
+import torch
 from config import parse_args, check_arguments
-from log import initialize_logging
+from log import initialize_logging, write_logs, LogStatus
 from data.data_loader import (
     reader,
     build_labels,
@@ -15,67 +18,69 @@ from data.plot import (
     visualize_sequence_lengths,
     visualize_family_sizes,
 )
-
-import logging
-import timeit
+from model.protein_cnn import ProtCNN
+from model.utils import load_model, test_model
 
 
 def measure_performance(func, *args, **kwargs):
-    # Utiliser timeit pour mesurer le temps d'exécution
+    # Use timeit to measure the execution time
     execution_time = timeit.timeit(lambda: func(*args, **kwargs), number=1)
     print(f"Execution time: {execution_time:.6f} seconds")
 
 
 def load_data(args):
-    # Charger les données
     train_data, train_targets = reader("train", args.data_path)
     fam2label = build_labels(train_targets)
+
+    if args.num_classes != len(fam2label):
+        args.num_classes == len(fam2label)
+        msg = f"Num_classes doesn't match numbers of labels. New num_classes {len(fam2label)}"
+        write_logs(msg, LogStatus.WARNING, True)
+
     amino_acid_counter = get_amino_acid_frequencies(train_data)
     word2id = build_vocab(train_data)
-    train_dataset = SequenceDataset(
-        word2id, fam2label, args.seq_max_len, args.data_path, "train"
-    )
-    dev_dataset = SequenceDataset(
-        word2id, fam2label, args.seq_max_len, args.data_path, "dev"
-    )
-    test_dataset = SequenceDataset(
-        word2id, fam2label, args.seq_max_len, args.data_path, "test"
-    )
+
+    train_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "train")
+    dev_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "dev")
+    test_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "test")
 
     dataloaders = create_data_loaders(train_dataset, dev_dataset, test_dataset, args.batch_size, args.num_workers)
 
-    return (
-        train_data,
-        train_targets,
-        amino_acid_counter,
-        dataloaders,
-    )
+    return train_data, amino_acid_counter, dataloaders
+
+
+def visualize_plots(data, aa_counter, args):
+    visualize_family_sizes(data, args.save_plots, args.display_plots, args.output_path)
+    visualize_sequence_lengths(data, args.save_plots, args.display_plots, args.output_path)
+    visualize_aa_frequencies(aa_counter, args.save_plots, args.display_plots, args.output_path)
 
 
 def main():
-    # Initialisation
+    # Initialization
     args = parse_args()
     initialize_logging(args)
     check_arguments(args)
 
-    # Chargement des données
-    (
-        train_data,
-        train_targets,
-        amino_acid_counter,
-        dataloaders,
-    ) = load_data(args)
+    # Load data
+    train_data, amino_acid_counter, dataloaders = load_data(args)
 
-    # Visualisations
-    visualize_family_sizes(
-        train_targets, args.save_plots, args.display_plots, args.output_path
-    )
-    visualize_sequence_lengths(
-        train_data, args.save_plots, args.display_plots, args.output_path
-    )
-    visualize_aa_frequencies(
-        amino_acid_counter, args.save_plots, args.display_plots, args.output_path
-    )
+    # Visualizations
+    if args.save_plots or args.display_plots:
+        visualize_plots(train_data, amino_acid_counter, args)
+
+    # Training
+    if args.train:
+        prot_cnn = ProtCNN(args.num_classes)
+        pl.seed_everything(0)
+        trainer = pl.Trainer(accelerator="auto", max_epochs=args.epochs)
+        trainer.fit(prot_cnn, dataloaders['train'], dataloaders['dev'])
+        # Check if model already exists
+        torch.save(prot_cnn.state_dict(), os.path.join(args.model_path, 'prot_cnn_model.pt'))
+
+    # Testing
+    if args.test:
+        model = load_model(args.model_path, args.model_name)
+        test_model(model, dataloaders['test'])
 
     logging.shutdown()
 

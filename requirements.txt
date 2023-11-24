@@ -6,6 +6,7 @@ seaborn
 tensorboard
 torch
 torchmetrics
+scikit-learn
 rich
 pytest
 flake8
