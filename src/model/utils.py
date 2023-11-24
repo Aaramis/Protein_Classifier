@@ -1,10 +1,12 @@
 from model.protein_cnn import ProtCNN
-from log import write_logs, LogStatus
+from log import write_logs, check_directory, LogStatus
 import torch
+import os
 from tqdm import tqdm
 from typing import Optional
 from sklearn.metrics import accuracy_score
 import numpy as np
+import pandas as pd
 
 
 def get_last_layer(model: dict) -> Optional[str]:
@@ -49,7 +51,7 @@ def load_model(model_path: str, model_name: str) -> Optional[ProtCNN]:
 
 def test_model(model: ProtCNN, test_dataloader) -> None:
 
-    write_logs("Starting Test", LogStatus.INFO, True)
+    write_logs("Starting Evauation", LogStatus.INFO, True)
     model.eval()
     all_preds = []
     all_labels = []
@@ -67,9 +69,9 @@ def test_model(model: ProtCNN, test_dataloader) -> None:
     write_logs(f"Test Accuracy: {accuracy:.4f}", LogStatus.INFO, True)
 
 
-def evaluate_sequence(args, model, sequence, word2id):
+def evaluate_one_sequence(args, model, sequence, word2id, display):
 
-    write_logs(f"Starting Evaluation of {sequence}", LogStatus.INFO, True)
+    write_logs(f"Starting Prediction of {sequence}", LogStatus.INFO, display)
 
     seq = [word2id.get(word, word2id['<unk>']) for word in sequence[:args.seq_max_len]]
     seq += [word2id['<pad>']] * (args.seq_max_len - len(seq))
@@ -83,6 +85,22 @@ def evaluate_sequence(args, model, sequence, word2id):
         prediction = model(one_hot_seq)
 
     predicted_class_index = torch.argmax(prediction, dim=1).item()
-    write_logs(f"Predicted class {predicted_class_index}", LogStatus.INFO, True)
+    write_logs(f"Predicted class {predicted_class_index}", LogStatus.INFO, display)
 
     return predicted_class_index
+
+
+def evaluate_csv(args, model, word2id):
+
+    write_logs(f"Starting Prediction of {args.csv}", LogStatus.INFO, True)
+
+    df = pd.read_csv(args.csv, index_col=None, usecols=["sequence"])
+    lst_pred = [evaluate_one_sequence(args, model, seq, word2id, False)for seq in df['sequence']]
+    df["pred"] = pd.DataFrame(lst_pred)
+
+    check_directory(f"{args.output_path}/prediction", "prediciton directory")
+    file = f"{args.output_path}/prediction/prediction.csv"
+    df.to_csv(file, index=None)
+
+    if os.path.isfile(file):
+        write_logs(f"Prediction available here -> {file}", LogStatus.INFO, True)

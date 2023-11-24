@@ -63,9 +63,9 @@ def parse_args() -> argparse.Namespace:
     # Command line arguments for Training and hyperparameters
     test_args = parser.add_argument_group('Test and Eval arguments')
 
-    test_args.add_argument("--test", action="store_true",
-                           help="Flag to trigger testing.")
     test_args.add_argument("--eval", action="store_true",
+                           help="Flag to trigger testing.")
+    test_args.add_argument("--predict", action="store_true",
                            help="Flag to trigger evaluation.")
     test_args.add_argument('--model_name',
                            type=str,
@@ -75,6 +75,10 @@ def parse_args() -> argparse.Namespace:
                            type=str,
                            default=None,
                            help='Sequence to evaluate')
+    test_args.add_argument('--csv',
+                           type=str,
+                           default=None,
+                           help='csv to evaluate')
 
     # Command line arguments for plots
     plots_args = parser.add_argument_group('Plots arguments')

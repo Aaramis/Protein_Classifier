@@ -19,7 +19,12 @@ from data.plot import (
     visualize_family_sizes,
 )
 from model.protein_cnn import ProtCNN
-from model.utils import load_model, test_model, evaluate_sequence
+from model.utils import (
+    load_model,
+    test_model,
+    evaluate_one_sequence,
+    evaluate_csv,
+)
 
 
 def measure_performance(func, *args, **kwargs):
@@ -68,7 +73,7 @@ def main():
     if args.save_plots or args.display_plots:
         visualize_plots(train_data, amino_acid_counter, args)
 
-    # Training
+    # Train
     if args.train:
         prot_cnn = ProtCNN(args.num_classes)
         pl.seed_everything(0)
@@ -77,16 +82,19 @@ def main():
         # Check if model already exists
         torch.save(prot_cnn.state_dict(), os.path.join(args.model_path, args.model_name))
 
-    # Testing
-    if args.test:
+    # Evaluation
+    if args.eval:
         model = load_model(args.model_path, args.model_name)
         test_model(model, dataloaders['test'])
 
-    # Evaluation
-    if args.eval and args.sequence:
+    # Predict 1 sequence
+    if args.predict and args.sequence:
         model = load_model(args.model_path, args.model_name)
-        predicted_class_index = evaluate_sequence(args, model, args.sequence, word2id)
-        print(predicted_class_index)
+        evaluate_one_sequence(args, model, args.sequence, word2id, True)
+
+    if args.predict and args.csv:
+        model = load_model(args.model_path, args.model_name)
+        evaluate_csv(args, model, word2id)
 
     logging.shutdown()
 
