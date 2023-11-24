@@ -167,4 +167,5 @@ log
 output
 
 # To remove
+models
 ml-pipeline-refactoring.ipynb
