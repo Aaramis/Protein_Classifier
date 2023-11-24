@@ -26,45 +26,55 @@ def parse_args() -> argparse.Namespace:
                            type=str,
                            default=os.path.abspath('./models'),
                            help='Path to the model')
-    main_args.add_argument('--model_name',
+
+    # Command line arguments for Training and hyperparameters
+    train_args = parser.add_argument_group('Training hyperparameters arguments')
+
+    train_args.add_argument("--train", action="store_true",
+                            help="Flag to trigger training.")
+    train_args.add_argument('--seq_max_len',
+                            type=int, default=120,
+                            help='Maximum length of sequences')
+    train_args.add_argument('--batch_size',
+                            type=int, default=1,
+                            help='Batch size for training and evaluation')
+    train_args.add_argument('--num_workers',
+                            type=int, default=1,
+                            help='Number of data loader workers')
+    train_args.add_argument('--num_classes',
+                            type=int, default=16652,
+                            help='Number of classes (family labels)')
+    train_args.add_argument('--lr',
+                            type=float, default=1e-2,
+                            help='Learning rate')
+    train_args.add_argument('--momentum',
+                            type=float, default=0.9,
+                            help='SGD momentum')
+    train_args.add_argument('--weight_decay',
+                            type=float, default=1e-2,
+                            help='Weight decay for regularization')
+    train_args.add_argument('--epochs',
+                            type=int, default=25,
+                            help='Number of training epochs')
+    train_args.add_argument('--gpus',
+                            type=int, default=1,
+                            help='Number of GPUs to use for training')
+
+    # Command line arguments for Training and hyperparameters
+    test_args = parser.add_argument_group('Test and Eval arguments')
+
+    test_args.add_argument("--test", action="store_true",
+                           help="Flag to trigger testing.")
+    test_args.add_argument("--eval", action="store_true",
+                           help="Flag to trigger evaluation.")
+    test_args.add_argument('--model_name',
                            type=str,
                            default='prot_cnn_model.pt',
                            help='Model name')
-
-    # Command line arguments for hyperparameters
-    model_args = parser.add_argument_group('Models hyperparameters arguments')
-
-    model_args.add_argument("--train", action="store_true",
-                            help="Flag to trigger training.")
-    model_args.add_argument("--test", action="store_true",
-                            help="Flag to trigger testing.")
-    model_args.add_argument('--seq_max_len',
-                            type=int, default=120,
-                            help='Maximum length of sequences')
-    model_args.add_argument('--batch_size',
-                            type=int, default=1,
-                            help='Batch size for training and evaluation')
-    model_args.add_argument('--num_workers',
-                            type=int, default=1,
-                            help='Number of data loader workers')
-    model_args.add_argument('--num_classes',
-                            type=int, default=16652,
-                            help='Number of classes (family labels)')
-    model_args.add_argument('--lr',
-                            type=float, default=1e-2,
-                            help='Learning rate')
-    model_args.add_argument('--momentum',
-                            type=float, default=0.9,
-                            help='SGD momentum')
-    model_args.add_argument('--weight_decay',
-                            type=float, default=1e-2,
-                            help='Weight decay for regularization')
-    model_args.add_argument('--gpus',
-                            type=int, default=1,
-                            help='Number of GPUs to use for training')
-    model_args.add_argument('--epochs',
-                            type=int, default=25,
-                            help='Number of training epochs')
+    test_args.add_argument('--sequence',
+                           type=str,
+                           default=None,
+                           help='Sequence to evaluate')
 
     # Command line arguments for plots
     plots_args = parser.add_argument_group('Plots arguments')

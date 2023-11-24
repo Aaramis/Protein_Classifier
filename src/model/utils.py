@@ -4,6 +4,7 @@ import torch
 from tqdm import tqdm
 from typing import Optional
 from sklearn.metrics import accuracy_score
+import numpy as np
 
 
 def get_last_layer(model: dict) -> Optional[str]:
@@ -64,3 +65,24 @@ def test_model(model: ProtCNN, test_dataloader) -> None:
 
     accuracy = accuracy_score(all_labels, all_preds)
     write_logs(f"Test Accuracy: {accuracy:.4f}", LogStatus.INFO, True)
+
+
+def evaluate_sequence(args, model, sequence, word2id):
+
+    write_logs(f"Starting Evaluation of {sequence}", LogStatus.INFO, True)
+
+    seq = [word2id.get(word, word2id['<unk>']) for word in sequence[:args.seq_max_len]]
+    seq += [word2id['<pad>']] * (args.seq_max_len - len(seq))
+    seq = torch.from_numpy(np.array(seq))
+    one_hot_seq = torch.nn.functional.one_hot(seq, num_classes=len(word2id))
+    one_hot_seq = one_hot_seq.permute(1, 0)
+    one_hot_seq = one_hot_seq.unsqueeze(0)
+
+    model.eval()
+    with torch.no_grad():
+        prediction = model(one_hot_seq)
+
+    predicted_class_index = torch.argmax(prediction, dim=1).item()
+    write_logs(f"Predicted class {predicted_class_index}", LogStatus.INFO, True)
+
+    return predicted_class_index

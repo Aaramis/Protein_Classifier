@@ -19,7 +19,7 @@ from data.plot import (
     visualize_family_sizes,
 )
 from model.protein_cnn import ProtCNN
-from model.utils import load_model, test_model
+from model.utils import load_model, test_model, evaluate_sequence
 
 
 def measure_performance(func, *args, **kwargs):
@@ -46,7 +46,7 @@ def load_data(args):
 
     dataloaders = create_data_loaders(train_dataset, dev_dataset, test_dataset, args.batch_size, args.num_workers)
 
-    return train_data, amino_acid_counter, dataloaders
+    return train_data, word2id, amino_acid_counter, dataloaders
 
 
 def visualize_plots(data, aa_counter, args):
@@ -62,7 +62,7 @@ def main():
     check_arguments(args)
 
     # Load data
-    train_data, amino_acid_counter, dataloaders = load_data(args)
+    train_data, word2id, amino_acid_counter, dataloaders = load_data(args)
 
     # Visualizations
     if args.save_plots or args.display_plots:
@@ -75,12 +75,18 @@ def main():
         trainer = pl.Trainer(accelerator="auto", max_epochs=args.epochs)
         trainer.fit(prot_cnn, dataloaders['train'], dataloaders['dev'])
         # Check if model already exists
-        torch.save(prot_cnn.state_dict(), os.path.join(args.model_path, 'prot_cnn_model.pt'))
+        torch.save(prot_cnn.state_dict(), os.path.join(args.model_path, args.model_name))
 
     # Testing
     if args.test:
         model = load_model(args.model_path, args.model_name)
         test_model(model, dataloaders['test'])
+
+    # Evaluation
+    if args.eval and args.sequence:
+        model = load_model(args.model_path, args.model_name)
+        predicted_class_index = evaluate_sequence(args, model, args.sequence, word2id)
+        print(predicted_class_index)
 
     logging.shutdown()
 
