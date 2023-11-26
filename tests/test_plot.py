@@ -24,6 +24,15 @@ import pandas as pd
 fake_data_path = Path.cwd() / "tests" / "data"
 
 
+class Args(object):
+
+    def __init__(self, output_path: str) -> None:
+        self.split = "train"
+        self.save_plots = 1
+        self.display_plots = 0
+        self.output_path = output_path
+
+
 @pytest.fixture
 def mock_data() -> Tuple[pd.Series, pd.Series, pd.DataFrame]:
     train_targets = pd.Series(['A', 'B', 'A', 'C', 'B', 'A', 'C'])
@@ -39,8 +48,9 @@ def fake_data() -> Tuple[pd.Series, pd.Series]:
 
 def test_visualize_family_sizes(mock_data: Tuple[pd.Series, pd.Series, pd.DataFrame], tmp_path: Path) -> None:
     train_targets, _, _ = mock_data
-    save_path = tmp_path / "plot" / "family_sizes.png"
-    visualize_family_sizes(train_targets, save=True, display=False, output_dir=tmp_path)
+    save_path = tmp_path / "plot" / "train_family_sizes.png"
+    args = Args(tmp_path)
+    visualize_family_sizes(train_targets, args)
 
     assert save_path.is_file()
 
@@ -50,8 +60,9 @@ def test_visualize_family_sizes(mock_data: Tuple[pd.Series, pd.Series, pd.DataFr
 
 def test_visualize_sequence_lengths(mock_data: Tuple[pd.Series, pd.Series, pd.DataFrame], tmp_path: Path) -> None:
     _, train_data, _ = mock_data
-    save_path = tmp_path / "plot" / "sequence_lengths.png"
-    visualize_sequence_lengths(train_data, save=True, display=False, output_dir=tmp_path)
+    save_path = tmp_path / "plot" / "train_sequence_lengths.png"
+    args = Args(tmp_path)
+    visualize_sequence_lengths(train_data, args)
 
     assert save_path.is_file()
 
@@ -62,8 +73,9 @@ def test_visualize_sequence_lengths(mock_data: Tuple[pd.Series, pd.Series, pd.Da
 def test_visualize_aa_frequencies(tmp_path: Path, fake_data: Tuple[pd.Series, pd.Series]) -> None:
     sequence, _ = fake_data
     amino_acid_counter = get_amino_acid_frequencies(sequence)
-    save_path = tmp_path / "plot" / "aa_frequencies.png"
-    visualize_aa_frequencies(amino_acid_counter, save=True, display=False, output_dir=tmp_path)
+    save_path = tmp_path / "plot" / "train_aa_frequencies.png"
+    args = Args(tmp_path)
+    visualize_aa_frequencies(amino_acid_counter, args)
 
     assert save_path.is_file()
 

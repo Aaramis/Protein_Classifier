@@ -52,7 +52,7 @@ def load_model(model_path: str, model_name: str) -> Optional[ProtCNN]:
 
 def eval_model(model: ProtCNN, test_dataloader) -> None:
 
-    write_logs("Starting Evauation", LogStatus.INFO, True)
+    write_logs("Starting Evaluation", LogStatus.INFO, True)
     model.eval()
     all_preds = []
     all_labels = []

@@ -12,7 +12,6 @@ from src.data.data_loader import (
     get_amino_acid_frequencies,
     build_vocab,
     SequenceDataset,
-    create_data_loaders,
 )
 from src.data.plot import (
     visualize_aa_frequencies,
@@ -46,20 +45,16 @@ def load_data(args):
     amino_acid_counter = get_amino_acid_frequencies(train_data)
     word2id = build_vocab(train_data)
 
-    train_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "train")
-    dev_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "dev")
-    test_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "test")
-
-    dataloaders = create_data_loaders(train_dataset, dev_dataset, test_dataset, args.batch_size, args.num_workers)
-
-    return train_data, fam2label, word2id, amino_acid_counter, dataloaders
+    return fam2label, word2id, amino_acid_counter
 
 
-def visualize_plots(data, aa_counter, args):
+def visualize_plots(aa_counter, args):
 
-    visualize_family_sizes(data, args.save_plots, args.display_plots, args.output_path)
-    visualize_sequence_lengths(data, args.save_plots, args.display_plots, args.output_path)
-    visualize_aa_frequencies(aa_counter, args.save_plots, args.display_plots, args.output_path)
+    data, _ = reader(args.split, args.data_path)
+
+    visualize_family_sizes(data, args)
+    visualize_sequence_lengths(data, args)
+    visualize_aa_frequencies(aa_counter, args)
 
 
 def main():
@@ -69,25 +64,33 @@ def main():
     check_arguments(args)
 
     # Load data
-    train_data, fam2label, word2id, amino_acid_counter, dataloaders = load_data(args)
+    fam2label, word2id, amino_acid_counter = load_data(args)
 
     # Visualizations
     if args.save_plots or args.display_plots:
-        visualize_plots(train_data, amino_acid_counter, args)
+        visualize_plots(amino_acid_counter, args)
 
     # Train
     if args.train:
+        train_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "train")
+        train_dataloader = train_dataset.create_dataloader(train_dataset, args.batch_size, args.num_workers)
+
+        dev_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "dev")
+        dev_dataloader = dev_dataset.create_dataloader(dev_dataset, args.batch_size, args.num_workers)
+
         prot_cnn = ProtCNN(args.num_classes)
         tb_logger = TensorBoardLogger("lightning_logs/", name="my_experiment")
         pl.seed_everything(0)
         trainer = pl.Trainer(accelerator="auto", max_epochs=args.epochs, logger=tb_logger)
-        trainer.fit(prot_cnn, dataloaders['train'], dataloaders['dev'])
+        trainer.fit(prot_cnn, train_dataloader, dev_dataloader)
         torch.save(prot_cnn.state_dict(), os.path.join(args.model_path, args.model_name))
 
     # Evaluation
     if args.eval:
         model = load_model(args.model_path, args.model_name)
-        eval_model(model, dataloaders['test'])
+        test_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "test")
+        test_dataloader = test_dataset.create_dataloader(test_dataset, args.batch_size, args.num_workers)
+        eval_model(model, test_dataloader)
 
     # Predict 1 sequence
     if args.predict and args.sequence:

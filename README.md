@@ -64,6 +64,7 @@ To start working on this project, follow these steps:
 |-------------------|--------------------------------------------|---------------------|
 | --display_plots   | Display plots                              | 0                   |
 | --save_plots      | Save plots in the output folder            | 0                   |
+| --split           | Type of split to plot                      | train               |
 
 
 ## IV. Usage and CLI commands
@@ -118,3 +119,6 @@ Example for multiple sequences:
 ```
 python main.py --predict --model_path ./models  --model_name prot_cnn_model.pt  --csv ./tests/data/test.csv
 ```
+
+
+https://elifesciences.org/articles/82819

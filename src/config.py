@@ -88,6 +88,9 @@ def parse_args() -> argparse.Namespace:
     plots_args.add_argument('--save_plots',
                             type=int, default=0,
                             help='Save plots in output folder')
+    plots_args.add_argument('--split',
+                            type=str, default="train",
+                            help='Type of split to plot')
 
     return parser.parse_args()
 

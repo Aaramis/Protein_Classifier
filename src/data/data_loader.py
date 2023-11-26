@@ -2,7 +2,7 @@ from collections import Counter
 from typing import Dict, Tuple, Union
 import os
 import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -80,31 +80,10 @@ class SequenceDataset(torch.utils.data.Dataset):
         one_hot_seq = one_hot_seq.permute(1, 0)
         return one_hot_seq
 
-
-def create_data_loaders(train: Dataset, dev: Dataset, test: Dataset, batch: int, workers: int) -> Dict[str, DataLoader]:
-    write_logs("Building dataloaders", LogStatus.INFO, False)
-
-    dataloaders: Dict[str, DataLoader] = {}
-
-    dataloaders['train'] = torch.utils.data.DataLoader(
-        train,
-        batch_size=batch,
-        shuffle=True,
-        num_workers=workers,
-    )
-
-    dataloaders['dev'] = torch.utils.data.DataLoader(
-        dev,
-        batch_size=batch,
-        shuffle=False,
-        num_workers=workers,
-    )
-
-    dataloaders['test'] = torch.utils.data.DataLoader(
-        test,
-        batch_size=batch,
-        shuffle=False,
-        num_workers=workers,
-    )
-
-    return dataloaders
+    def create_dataloader(self, data: object, batch: int, workers: int) -> DataLoader:
+        return torch.utils.data.DataLoader(
+                data,
+                batch_size=batch,
+                shuffle=True,
+                num_workers=workers,
+            )
