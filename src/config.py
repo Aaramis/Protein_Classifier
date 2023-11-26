@@ -8,7 +8,7 @@ def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description='Protein Classifier Configuration')
 
-    # Command line arguments for directory adnf iles
+    # Command line arguments for directory and files
     main_args = parser.add_argument_group('Directory arguments')
     main_args.add_argument('--data_path',
                            type=str,

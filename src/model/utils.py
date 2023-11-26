@@ -78,7 +78,6 @@ def predict_one_sequence(args, model, sequence, word2id, fam2label, display):
     seq += [word2id['<pad>']] * (args.seq_max_len - len(seq))
     seq = torch.from_numpy(np.array(seq))
     one_hot_seq = torch.nn.functional.one_hot(seq, num_classes=len(word2id))
-    print(one_hot_seq)
     one_hot_seq = one_hot_seq.permute(1, 0)
     one_hot_seq = one_hot_seq.unsqueeze(0)
 
