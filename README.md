@@ -74,7 +74,7 @@ To start working on this project, follow these steps:
 This command lets you quickly visualize the distribution of family sizes, sequence lengths and amino acid frequencies for the train dataset. Plots will be saved by default in ```./output/plot```
 
 ```
-python main.py --save_plots 1 --display_plots 1
+python main.py --save_plots 1 --display_plots 1 --split train
 ```
 
 ### Training

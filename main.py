@@ -1,10 +1,9 @@
-import os
 import logging
 import timeit
-import pytorch_lightning as pl
-import torch
-from pytorch_lightning.loggers import TensorBoardLogger
+from argparse import Namespace
+from pandas import DataFrame
 from src.config import parse_args, check_arguments
+from src.model.model_manger import ModelManager
 from src.log import initialize_logging, write_logs, LogStatus
 from src.data.data_loader import (
     reader,
@@ -19,12 +18,7 @@ from src.data.plot import (
     visualize_family_sizes,
 )
 from src.model.protein_cnn import ProtCNN
-from src.model.utils import (
-    load_model,
-    eval_model,
-    predict_one_sequence,
-    predict_csv,
-)
+from src.model.utils import load_model
 
 
 def measure_performance(func, *args, **kwargs):
@@ -33,7 +27,7 @@ def measure_performance(func, *args, **kwargs):
     print(f"Execution time: {execution_time:.6f} seconds")
 
 
-def load_data(args):
+def load_data(args: Namespace):
     train_data, train_targets = reader("train", args.data_path)
     fam2label = build_labels(train_targets)
 
@@ -48,7 +42,7 @@ def load_data(args):
     return fam2label, word2id, amino_acid_counter
 
 
-def visualize_plots(aa_counter, args):
+def visualize_plots(aa_counter: DataFrame, args: Namespace):
 
     data, _ = reader(args.split, args.data_path)
 
@@ -58,6 +52,7 @@ def visualize_plots(aa_counter, args):
 
 
 def main():
+
     # Initialization
     args = parse_args()
     initialize_logging(args)
@@ -70,6 +65,10 @@ def main():
     if args.save_plots or args.display_plots:
         visualize_plots(amino_acid_counter, args)
 
+    # If ProtCNN
+    prot_cnn = ProtCNN(args.num_classes)
+    model_manager = ModelManager(prot_cnn, word2id, fam2label, args)
+
     # Train
     if args.train:
         train_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "train")
@@ -78,29 +77,25 @@ def main():
         dev_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "dev")
         dev_dataloader = dev_dataset.create_dataloader(dev_dataset, args.batch_size, args.num_workers)
 
-        prot_cnn = ProtCNN(args.num_classes)
-        tb_logger = TensorBoardLogger("lightning_logs/", name="my_experiment")
-        pl.seed_everything(0)
-        trainer = pl.Trainer(accelerator="auto", max_epochs=args.epochs, logger=tb_logger)
-        trainer.fit(prot_cnn, train_dataloader, dev_dataloader)
-        torch.save(prot_cnn.state_dict(), os.path.join(args.model_path, args.model_name))
+        model_manager.train(train_dataloader, dev_dataloader)
 
     # Evaluation
     if args.eval:
+        # if ProtCNN
         model = load_model(args.model_path, args.model_name)
         test_dataset = SequenceDataset(word2id, fam2label, args.seq_max_len, args.data_path, "test")
         test_dataloader = test_dataset.create_dataloader(test_dataset, args.batch_size, args.num_workers)
-        eval_model(model, test_dataloader)
+        model_manager.evaluate(model, test_dataloader)
 
     # Predict 1 sequence
     if args.predict and args.sequence:
         model = load_model(args.model_path, args.model_name)
-        predict_one_sequence(args, model, args.sequence, word2id, fam2label, True)
+        model_manager.predict_one_sequence(model, args.sequence, True)
 
     # Predict multiple sequences
     if args.predict and args.csv:
         model = load_model(args.model_path, args.model_name)
-        predict_csv(args, model, word2id, fam2label)
+        model_manager.predict_csv(model)
 
     logging.shutdown()
 

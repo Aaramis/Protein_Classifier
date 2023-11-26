@@ -1,17 +1,20 @@
 from src.model.protein_cnn import ProtCNN
 from collections import OrderedDict
-from src.log import write_logs, check_directory, LogStatus
+from src.log import write_logs, LogStatus
 import torch
-import os
-from tqdm import tqdm
-from typing import Optional
-from sklearn.metrics import accuracy_score
-import numpy as np
-import pandas as pd
+from typing import Optional, Union, Dict
 
 
 def get_last_layer(model: OrderedDict) -> Optional[str]:
+    """
+    Get the last layer key in the model.
 
+    Args:
+        model (OrderedDict): The model's state dictionary.
+
+    Returns:
+        Optional[str]: The key of the last layer or None if not found.
+    """
     last_layer_key = None
     for key in model.keys():
         if 'model' in key:
@@ -20,7 +23,16 @@ def get_last_layer(model: OrderedDict) -> Optional[str]:
 
 
 def get_num_classes(model: OrderedDict, last_layer: Optional[str]) -> int:
+    """
+    Get the number of classes from the last layer of the model.
 
+    Args:
+        model (OrderedDict): The model's state dictionary.
+        last_layer (Optional[str]): The key of the last layer.
+
+    Returns:
+        int: The number of classes or 0 if last_layer is None.
+    """
     if last_layer is not None:
         num_classes = model[last_layer].size()
         return list(num_classes)[0]
@@ -28,7 +40,16 @@ def get_num_classes(model: OrderedDict, last_layer: Optional[str]) -> int:
 
 
 def load_model(model_path: str, model_name: str) -> Optional[ProtCNN]:
+    """
+    Load a PyTorch model from a file.
 
+    Args:
+        model_path (str): The path to the directory containing the model file.
+        model_name (str): The name of the model file.
+
+    Returns:
+        Optional[ProtCNN]: The loaded model or None if unsuccessful.
+    """
     write_logs("Loading model", LogStatus.INFO, False)
 
     if model_path and model_name:
@@ -37,7 +58,12 @@ def load_model(model_path: str, model_name: str) -> Optional[ProtCNN]:
         write_logs("Model not findable", LogStatus.CRITICAL, False)
         return None
 
-    pretrained_state_dict = torch.load(file_path)
+    try:
+        pretrained_state_dict = torch.load(file_path)
+    except Exception as e:
+        write_logs(f"Error loading model: {str(e)}", LogStatus.ERROR, False)
+        return None
+
     last_layer = get_last_layer(pretrained_state_dict)
     num_classes = get_num_classes(pretrained_state_dict, last_layer)
 
@@ -50,66 +76,17 @@ def load_model(model_path: str, model_name: str) -> Optional[ProtCNN]:
     return None
 
 
-def eval_model(model: ProtCNN, test_dataloader) -> None:
+def find_key_by_value(dictionary: Dict[Union[str, int], int], value: int) -> Optional[Union[str, int]]:
+    """
+    Find a key in a dictionary by its value.
 
-    write_logs("Starting Evaluation", LogStatus.INFO, True)
-    model.eval()
-    all_preds = []
-    all_labels = []
+    Args:
+        dictionary (Dict[Union[str, int], int]): The dictionary to search.
+        value (int): The value to find.
 
-    with torch.no_grad(), tqdm(total=len(test_dataloader)) as pbar:
-        for batch in test_dataloader:
-            x, y = batch['sequence'], batch['target']
-            y_hat = model(x)
-            preds = torch.argmax(y_hat, dim=1)
-            all_preds.extend(preds.cpu().numpy())
-            all_labels.extend(y.cpu().numpy())
-            pbar.update(1)
-
-    accuracy = accuracy_score(all_labels, all_preds)
-    write_logs(f"Test Accuracy: {accuracy:.4f}", LogStatus.INFO, True)
-
-
-def predict_one_sequence(args, model, sequence, word2id, fam2label, display):
-
-    write_logs(f"Starting Prediction of {sequence}", LogStatus.INFO, display)
-
-    seq = [word2id.get(word, word2id['<unk>']) for word in sequence[:args.seq_max_len]]
-    seq += [word2id['<pad>']] * (args.seq_max_len - len(seq))
-    seq = torch.from_numpy(np.array(seq))
-    one_hot_seq = torch.nn.functional.one_hot(seq, num_classes=len(word2id))
-    one_hot_seq = one_hot_seq.permute(1, 0)
-    one_hot_seq = one_hot_seq.unsqueeze(0)
-
-    model.eval()
-    with torch.no_grad():
-        prediction = model(one_hot_seq)
-
-    predicted_class_index = torch.argmax(prediction, dim=1).item()
-    predicted_class_index = find_key_by_value(fam2label, predicted_class_index)
-
-    write_logs(f"Predicted class {predicted_class_index}", LogStatus.INFO, display)
-
-    return predicted_class_index
-
-
-def predict_csv(args, model, word2id, fam2label):
-
-    write_logs(f"Starting Prediction of {args.csv}", LogStatus.INFO, True)
-
-    df = pd.read_csv(args.csv, index_col=None, usecols=["sequence"])
-    lst_pred = [predict_one_sequence(args, model, seq, word2id, fam2label, False)for seq in df['sequence']]
-    df["pred"] = pd.DataFrame(lst_pred)
-
-    check_directory(f"{args.output_path}/prediction", "prediciton directory")
-    file = f"{args.output_path}/prediction/prediction.csv"
-    df.to_csv(file, index=None)
-
-    if os.path.isfile(file):
-        write_logs(f"Prediction available here -> {file}", LogStatus.INFO, True)
-
-
-def find_key_by_value(dictionary, value):
+    Returns:
+        Optional[Union[str, int]]: The key corresponding to the given value, or None if not found.
+    """
     for key, val in dictionary.items():
         if val == value:
             return key

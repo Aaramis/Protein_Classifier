@@ -120,7 +120,7 @@ def check_arguments(options: argparse.Namespace) -> None:
     if options.gpus > 0 and not torch.cuda.is_available():
         available_gpu_count = torch.cuda.device_count()
         if not available_gpu_count:
-            write_logs("GPU not available, training will be performed on CPU.", LogStatus.WARNING, True)
+            write_logs("GPU not available, work will be performed on CPU.", LogStatus.WARNING, True)
         elif options.gpus != available_gpu_count:
             write_logs("GPU are not optimized", LogStatus.WARNING, True)
 
