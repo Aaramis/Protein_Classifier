@@ -17,8 +17,6 @@ from data.data_loader import (
 )
 
 fake_data_path = f"{os.getcwd()}/tests/data"
-fake_sequence = pd.Series(["ACGT", "CGTA"])
-fake_targets = pd.Series([1, 2])
 
 
 @pytest.fixture

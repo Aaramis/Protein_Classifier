@@ -3,6 +3,7 @@ import logging
 import timeit
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.loggers import TensorBoardLogger
 from config import parse_args, check_arguments
 from log import initialize_logging, write_logs, LogStatus
 from data.data_loader import (
@@ -21,9 +22,9 @@ from data.plot import (
 from model.protein_cnn import ProtCNN
 from model.utils import (
     load_model,
-    test_model,
-    evaluate_one_sequence,
-    evaluate_csv,
+    eval_model,
+    predict_one_sequence,
+    predict_csv,
 )
 
 
@@ -51,7 +52,7 @@ def load_data(args):
 
     dataloaders = create_data_loaders(train_dataset, dev_dataset, test_dataset, args.batch_size, args.num_workers)
 
-    return train_data, word2id, amino_acid_counter, dataloaders
+    return train_data, fam2label, word2id, amino_acid_counter, dataloaders
 
 
 def visualize_plots(data, aa_counter, args):
@@ -67,7 +68,7 @@ def main():
     check_arguments(args)
 
     # Load data
-    train_data, word2id, amino_acid_counter, dataloaders = load_data(args)
+    train_data, fam2label, word2id, amino_acid_counter, dataloaders = load_data(args)
 
     # Visualizations
     if args.save_plots or args.display_plots:
@@ -76,25 +77,26 @@ def main():
     # Train
     if args.train:
         prot_cnn = ProtCNN(args.num_classes)
+        tb_logger = TensorBoardLogger("lightning_logs/", name="my_experiment")
         pl.seed_everything(0)
-        trainer = pl.Trainer(accelerator="auto", max_epochs=args.epochs)
+        trainer = pl.Trainer(accelerator="auto", max_epochs=args.epochs, logger=tb_logger)
         trainer.fit(prot_cnn, dataloaders['train'], dataloaders['dev'])
-        # Check if model already exists
         torch.save(prot_cnn.state_dict(), os.path.join(args.model_path, args.model_name))
 
     # Evaluation
     if args.eval:
         model = load_model(args.model_path, args.model_name)
-        test_model(model, dataloaders['test'])
+        eval_model(model, dataloaders['test'])
 
     # Predict 1 sequence
     if args.predict and args.sequence:
         model = load_model(args.model_path, args.model_name)
-        evaluate_one_sequence(args, model, args.sequence, word2id, True)
+        predict_one_sequence(args, model, args.sequence, word2id, fam2label, True)
 
+    # Predict multiple sequences
     if args.predict and args.csv:
         model = load_model(args.model_path, args.model_name)
-        evaluate_csv(args, model, word2id)
+        predict_csv(args, model, word2id, fam2label)
 
     logging.shutdown()
 

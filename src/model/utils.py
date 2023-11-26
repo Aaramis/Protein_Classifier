@@ -1,4 +1,5 @@
 from model.protein_cnn import ProtCNN
+from collections import OrderedDict
 from log import write_logs, check_directory, LogStatus
 import torch
 import os
@@ -9,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 
-def get_last_layer(model: dict) -> Optional[str]:
+def get_last_layer(model: OrderedDict) -> Optional[str]:
 
     last_layer_key = None
     for key in model.keys():
@@ -18,7 +19,7 @@ def get_last_layer(model: dict) -> Optional[str]:
     return last_layer_key
 
 
-def get_num_classes(model: dict, last_layer: Optional[str]) -> int:
+def get_num_classes(model: OrderedDict, last_layer: Optional[str]) -> int:
 
     if last_layer is not None:
         num_classes = model[last_layer].size()
@@ -49,7 +50,7 @@ def load_model(model_path: str, model_name: str) -> Optional[ProtCNN]:
     return None
 
 
-def test_model(model: ProtCNN, test_dataloader) -> None:
+def eval_model(model: ProtCNN, test_dataloader) -> None:
 
     write_logs("Starting Evauation", LogStatus.INFO, True)
     model.eval()
@@ -69,7 +70,7 @@ def test_model(model: ProtCNN, test_dataloader) -> None:
     write_logs(f"Test Accuracy: {accuracy:.4f}", LogStatus.INFO, True)
 
 
-def evaluate_one_sequence(args, model, sequence, word2id, display):
+def predict_one_sequence(args, model, sequence, word2id, fam2label, display):
 
     write_logs(f"Starting Prediction of {sequence}", LogStatus.INFO, display)
 
@@ -77,6 +78,7 @@ def evaluate_one_sequence(args, model, sequence, word2id, display):
     seq += [word2id['<pad>']] * (args.seq_max_len - len(seq))
     seq = torch.from_numpy(np.array(seq))
     one_hot_seq = torch.nn.functional.one_hot(seq, num_classes=len(word2id))
+    print(one_hot_seq)
     one_hot_seq = one_hot_seq.permute(1, 0)
     one_hot_seq = one_hot_seq.unsqueeze(0)
 
@@ -85,17 +87,19 @@ def evaluate_one_sequence(args, model, sequence, word2id, display):
         prediction = model(one_hot_seq)
 
     predicted_class_index = torch.argmax(prediction, dim=1).item()
+    predicted_class_index= find_key_by_value(fam2label, predicted_class_index)
+
     write_logs(f"Predicted class {predicted_class_index}", LogStatus.INFO, display)
 
     return predicted_class_index
 
 
-def evaluate_csv(args, model, word2id):
+def predict_csv(args, model, word2id, fam2label):
 
     write_logs(f"Starting Prediction of {args.csv}", LogStatus.INFO, True)
 
     df = pd.read_csv(args.csv, index_col=None, usecols=["sequence"])
-    lst_pred = [evaluate_one_sequence(args, model, seq, word2id, False)for seq in df['sequence']]
+    lst_pred = [predict_one_sequence(args, model, seq, word2id, fam2label, False)for seq in df['sequence']]
     df["pred"] = pd.DataFrame(lst_pred)
 
     check_directory(f"{args.output_path}/prediction", "prediciton directory")
@@ -104,3 +108,10 @@ def evaluate_csv(args, model, word2id):
 
     if os.path.isfile(file):
         write_logs(f"Prediction available here -> {file}", LogStatus.INFO, True)
+
+
+def find_key_by_value(dictionary, value):
+    for key, val in dictionary.items():
+        if val == value:
+            return key
+    return None
