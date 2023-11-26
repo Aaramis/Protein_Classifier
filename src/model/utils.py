@@ -86,7 +86,7 @@ def predict_one_sequence(args, model, sequence, word2id, fam2label, display):
         prediction = model(one_hot_seq)
 
     predicted_class_index = torch.argmax(prediction, dim=1).item()
-    predicted_class_index= find_key_by_value(fam2label, predicted_class_index)
+    predicted_class_index = find_key_by_value(fam2label, predicted_class_index)
 
     write_logs(f"Predicted class {predicted_class_index}", LogStatus.INFO, display)
 
