@@ -1,13 +1,13 @@
 import sys
 import os
 
-sys.path.append(f"{os.getcwd()}/src")
+sys.path.append(f"{os.getcwd()}")
 
 import pytest
 import pandas as pd
 from torch.utils.data import DataLoader
 from typing import Dict, Tuple
-from data.data_loader import (
+from src.data.data_loader import (
     reader,
     build_labels,
     get_amino_acid_frequencies,

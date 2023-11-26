@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, Dataset
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from log import write_logs, LogStatus
+from src.log import write_logs, LogStatus
 
 
 def reader(partition: str, data_path: Union[str, Path]) -> Tuple[pd.Series, pd.Series]:

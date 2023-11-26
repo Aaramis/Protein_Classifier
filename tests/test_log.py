@@ -1,10 +1,10 @@
 import sys
 import os
 
-sys.path.append(f"{os.getcwd()}/src")
+sys.path.append(f"{os.getcwd()}")
 
 import logging
-from log import (
+from src.log import (
     check_directory,
     LogStatus,
     write_logs,
@@ -12,7 +12,7 @@ from log import (
     log_version_info,
     log_command_line,
 )
-from config import parse_args
+from src.config import parse_args
 
 logger = logging.getLogger()
 logger.level = logging.DEBUG

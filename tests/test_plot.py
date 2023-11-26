@@ -1,14 +1,14 @@
 import sys
 import os
 
-sys.path.append(f"{os.getcwd()}/src")
+sys.path.append(f"{os.getcwd()}")
 
-from data.plot import (
+from src.data.plot import (
     visualize_family_sizes,
     visualize_sequence_lengths,
     visualize_aa_frequencies,
 )
-from data.data_loader import (
+from src.data.data_loader import (
     reader,
     get_amino_acid_frequencies,
 )

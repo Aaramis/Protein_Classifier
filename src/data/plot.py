@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
-from log import write_logs, LogStatus
+from src.log import write_logs, LogStatus
 
 
 def visualize_family_sizes(train_targets: pd.Series, save: bool, display: bool, output_dir: Union[str, Path]) -> None:

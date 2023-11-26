@@ -2,7 +2,7 @@ import logging
 import sys
 import subprocess
 import os
-from version import __version__
+from src.version import __version__
 from typing import Any, Optional
 from enum import Enum, auto
 try:

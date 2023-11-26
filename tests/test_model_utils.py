@@ -1,11 +1,11 @@
 import sys
 import os
 
-sys.path.append(f"{os.getcwd()}/src")
+sys.path.append(f"{os.getcwd()}")
 
 import torch
 from collections import OrderedDict
-from model.utils import (
+from src.model.utils import (
     get_last_layer,
     get_num_classes,
     find_key_by_value,

@@ -2,8 +2,8 @@ import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
 import torchmetrics
-from model.residual_block import ResidualBlock
-from model.lambda_layer import Lambda
+from src.model.residual_block import ResidualBlock
+from src.model.lambda_layer import Lambda
 
 
 class ProtCNN(pl.LightningModule):

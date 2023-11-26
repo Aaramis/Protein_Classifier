@@ -1,7 +1,7 @@
 import argparse
 import os
 import torch
-from log import write_logs, check_directory, LogStatus
+from src.log import write_logs, check_directory, LogStatus
 
 
 def parse_args() -> argparse.Namespace:
@@ -61,12 +61,12 @@ def parse_args() -> argparse.Namespace:
                             help='Number of GPUs to use for training')
 
     # Command line arguments for Training and hyperparameters
-    test_args = parser.add_argument_group('Test and Eval arguments')
+    test_args = parser.add_argument_group('Evaluation and Prediction arguments')
 
     test_args.add_argument("--eval", action="store_true",
-                           help="Flag to trigger testing.")
-    test_args.add_argument("--predict", action="store_true",
                            help="Flag to trigger evaluation.")
+    test_args.add_argument("--predict", action="store_true",
+                           help="Flag to trigger prediction.")
     test_args.add_argument('--model_name',
                            type=str,
                            default='prot_cnn_model.pt',
@@ -74,11 +74,11 @@ def parse_args() -> argparse.Namespace:
     test_args.add_argument('--sequence',
                            type=str,
                            default=None,
-                           help='Sequence to evaluate')
+                           help='Sequence to predict')
     test_args.add_argument('--csv',
                            type=str,
                            default=None,
-                           help='csv to evaluate')
+                           help='csv to predict')
 
     # Command line arguments for plots
     plots_args = parser.add_argument_group('Plots arguments')

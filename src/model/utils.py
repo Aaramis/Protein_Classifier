@@ -1,6 +1,6 @@
-from model.protein_cnn import ProtCNN
+from src.model.protein_cnn import ProtCNN
 from collections import OrderedDict
-from log import write_logs, check_directory, LogStatus
+from src.log import write_logs, check_directory, LogStatus
 import torch
 import os
 from tqdm import tqdm

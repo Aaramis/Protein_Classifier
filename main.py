@@ -4,9 +4,9 @@ import timeit
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.loggers import TensorBoardLogger
-from config import parse_args, check_arguments
-from log import initialize_logging, write_logs, LogStatus
-from data.data_loader import (
+from src.config import parse_args, check_arguments
+from src.log import initialize_logging, write_logs, LogStatus
+from src.data.data_loader import (
     reader,
     build_labels,
     get_amino_acid_frequencies,
@@ -14,13 +14,13 @@ from data.data_loader import (
     SequenceDataset,
     create_data_loaders,
 )
-from data.plot import (
+from src.data.plot import (
     visualize_aa_frequencies,
     visualize_sequence_lengths,
     visualize_family_sizes,
 )
-from model.protein_cnn import ProtCNN
-from model.utils import (
+from src.model.protein_cnn import ProtCNN
+from src.model.utils import (
     load_model,
     eval_model,
     predict_one_sequence,
@@ -56,6 +56,7 @@ def load_data(args):
 
 
 def visualize_plots(data, aa_counter, args):
+
     visualize_family_sizes(data, args.save_plots, args.display_plots, args.output_path)
     visualize_sequence_lengths(data, args.save_plots, args.display_plots, args.output_path)
     visualize_aa_frequencies(aa_counter, args.save_plots, args.display_plots, args.output_path)
