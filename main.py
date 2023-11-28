@@ -2,7 +2,6 @@ import logging
 from argparse import Namespace
 from pandas import DataFrame
 from src.config import parse_args, check_arguments
-from src.model.model_manager import ModelManager
 from src.log import initialize_logging, write_logs, LogStatus
 from src.data.data_loader import (
     reader,
@@ -25,6 +24,7 @@ from src.model.utils_t5 import (
     predict_one_sequence_t5,
     predict_csv_t5,
 )
+from src.model.train_cnn import ModelManager
 from src.model.train_t5 import train_per_residue, load_model_T5
 
 
