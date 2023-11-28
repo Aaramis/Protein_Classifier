@@ -90,9 +90,10 @@ def parse_args() -> argparse.Namespace:
     cnn_args.add_argument("--lr", type=float, default=1e-2, help="Learning rate")
 
     # Command line arguments for Transformer model
-    cnn_args = parser.add_argument_group("transformer arguments")
-    cnn_args.add_argument("--accum", type=int, default=2, help="Gradient Accumulation")
-    cnn_args.add_argument(
+    tr_args = parser.add_argument_group("transformer arguments")
+    tr_args.add_argument("--accum", type=int, default=2, help="Gradient Accumulation")
+    tr_args.add_argument("--dropout", type=float, default=0.2, help="Dropout rate")
+    tr_args.add_argument(
         "--pretrained_model",
         type=str,
         default="Rostlab/prot_t5_base_mt_uniref50",

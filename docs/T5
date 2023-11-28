@@ -1,0 +1,31 @@
+# ProtT5 documentation
+
+ProtT5 is a family of large language models (LLMs) specifically designed for processing protein sequences. These models are based on the T5 architecture, which is a powerful and versatile LLM originally developed by Google AI. ProtT5 models are trained on massive datasets of protein sequences, allowing them to learn the intricate patterns and relationships within these sequences. This makes them well-suited for a wide range of tasks, including:
+
+* **Protein structure prediction**: Predicting the 3D structure of a protein from its amino acid sequence is a challenging task, but ProtT5 models have shown promising results in this area.
+* **Protein function prediction**: Identifying the function of a protein is essential for understanding its role in biological processes. ProtT5 models can be used to predict protein function by analyzing its sequence and identifying similarities to proteins with known functions.
+* **Protein design**: Designing new proteins with specific properties, such as increased stability or enhanced enzyme activity, is a valuable endeavor in biotechnology. ProtT5 models can be used to design new proteins by generating sequences that match desired properties.
+
+ProtT5 models are trained using a self-supervised learning approach, which means they do not require large amounts of labeled data. Instead, they learn from unlabeled protein sequences by predicting masked amino acids or reconstructing scrambled sequences. This makes ProtT5 models more scalable and versatile than traditional supervised learning models, which often require extensive and expensive data labeling.
+
+ProtT5-XL-UniRef50 is the largest and most advanced ProtT5 model currently available. It was trained on a massive dataset of over 240 million protein sequences from the UniRef50 database. This makes ProtT5-XL-UniRef50 the most comprehensive and powerful ProtT5 model to date, and it has achieved state-of-the-art results on a variety of protein processing tasks.
+
+ProtT5-XL-BFD is another large ProtT5 model that was trained on a dataset of over 1.2 billion protein sequences from the BFD database. ProtT5-XL-BFD is slightly smaller than ProtT5-XL-UniRef50, but it is still a powerful model that has achieved excellent results on protein processing tasks.
+
+## Application of ProtT5
+
+ProtT5 models have a wide range of potential applications in biology and biotechnology. Some of the most promising applications include:
+
+* **Drug discovery**: ProtT5 models can be used to identify potential drug targets by analyzing protein sequences and predicting their function.
+* **Protein engineering**: ProtT5 models can be used to design new proteins with specific properties, such as increased stability or enhanced enzyme activity.
+* **Disease diagnosis**: ProtT5 models can be used to develop new diagnostic tools for diseases that are caused by protein mutations.
+* **Personalized medicine**: ProtT5 models can be used to analyze individual patient genomes and identify proteins that may be involved in disease.
+
+As ProtT5 models continue to develop, they are likely to play an increasingly important role in a wide range of biological and medical applications. These models have the potential to revolutionize our understanding of proteins and lead to new discoveries and therapies.
+
+
+## Feature extraction overview
+
+Here is a general overview on how ProtTrans models can be used to derive features (embeddings) for arbitrary protein sequences either on the level of single amino acids or whole proteins and how they can be used for classification tasks on both levels.
+
+![Alt text](../images/T5_archi.png)

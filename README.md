@@ -76,6 +76,7 @@ Please download the data available [here](https://www.kaggle.com/datasets/google
 | Argument          | Description                 | Default Value                     |
 |-------------------|-----------------------------|-----------------------------------|
 | --accum           | Gradient Accumulation       | 2                                 |
+| --dropout         | Dropout Rate                | 0.2                               |
 | --pretained_model | Pretrained model name       | "Rostlab/prot_t5_base_mt_uniref50"|
 
 ### Evaluation and Prediction arguments
@@ -161,7 +162,7 @@ By default, the model will be saved in ``./output/models/[model_name]``. If you 
 Example :
 
 ```
-python main.py --model_type T5 --train --data_path ./tests/data --epochs 25  --accum 2  --model_path ./models --model_name PT5_secstr_finetuned.pth --pretrained_model Rostlab/prot_t5_base_mt_uniref50"
+python main.py --model_type T5 --train --data_path ./tests/data --epochs 25  --accum 2  --model_path ./models --model_name PT5_secstr_finetuned.pth --pretrained_model Rostlab/prot_t5_base_mt_uniref50
 ```
 
 ### Evaluating

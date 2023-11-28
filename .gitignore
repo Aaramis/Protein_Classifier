@@ -170,6 +170,4 @@ output
 models/prot_cnn_model.pt
 models
 ml-pipeline-refactoring.ipynb
-docs
-images
 runs

@@ -104,6 +104,7 @@ def case_T5(args: Namespace, fam2label):
             seed=42,
             gpu=args.gpus,
             pretrained_model=args.pretrained_model,
+            dropout=args.dropout,
         )
 
         save_model_T5(model, model_file)

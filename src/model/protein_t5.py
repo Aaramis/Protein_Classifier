@@ -73,7 +73,17 @@ class LoRALinear(nn.Module):
         )
 
 
-def modify_with_lora(transformer, config):
+def modify_with_lora(transformer, config: LoRAConfig) -> T5PreTrainedModel:
+    """
+    Modifies the transformer model with LoRA layers.
+
+    Args:
+        transformer (T5PreTrainedModel): The input transformer model.
+        config (LoRAConfig): Configuration for LoRA layers.
+
+    Returns:
+        T5PreTrainedModel: Modified transformer model.
+    """
     for m_name, module in dict(transformer.named_modules()).items():
         if re.fullmatch(config.lora_modules, m_name):
             for c_name, layer in dict(module.named_children()).items():

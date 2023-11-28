@@ -1,19 +1,16 @@
-import numpy as np
-import re
 import os
+import re
 import torch
-from evaluate import load
-from transformers import TrainingArguments, Trainer
-from transformers import DataCollatorForTokenClassification
-from transformers import T5EncoderModel, T5Tokenizer
+import numpy as np
+from transformers import TrainingArguments, Trainer, T5EncoderModel, T5Tokenizer, DataCollatorForTokenClassification
 from src.model.protein_t5 import LoRAConfig, modify_with_lora, ClassConfig, T5EncoderForTokenClassification
 from src.model.utils_t5 import set_seeds, create_dataset
 from src.model.config_t5 import ds_config
+from evaluate import load
 
 
 def load_model_T5(filepath, num_labels, pretrained_model):
-
-    # load a new model
+    # Load a new model
     model, tokenizer = PT5_classification_model(num_labels, pretrained_model)
 
     # Load the non-frozen parameters from the saved file
@@ -27,13 +24,13 @@ def load_model_T5(filepath, num_labels, pretrained_model):
     return tokenizer, model
 
 
-def PT5_classification_model(num_labels, pretrained_model):
+def PT5_classification_model(dropout, num_labels, pretrained_model):
     # Load PT5 and tokenizer
     model = T5EncoderModel.from_pretrained(pretrained_model)
     tokenizer = T5Tokenizer.from_pretrained(pretrained_model)
 
-    # Create new Classifier model with PT5 dimensions
-    class_config = ClassConfig(num_labels=num_labels)
+    # Create a new Classifier model with PT5 dimensions
+    class_config = ClassConfig(dropout=dropout, num_labels=num_labels)
     class_model = T5EncoderForTokenClassification(model.config, class_config)
 
     # Set encoder and embedding weights to checkpoint weights
@@ -44,7 +41,7 @@ def PT5_classification_model(num_labels, pretrained_model):
     model = class_model
     del class_model
 
-    # Print number of trainable parameters
+    # Print the number of trainable parameters
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
     params = sum([np.prod(p.size()) for p in model_parameters])
     print("ProtT5_Classifier\nTrainable Parameter: " + str(params))
@@ -74,32 +71,28 @@ def PT5_classification_model(num_labels, pretrained_model):
 
 
 def train_per_residue(
-        train_df,        # training data
-        valid_df,        # validation data
-        num_labels=3,    # number of classes
-
-        # effective training batch size is batch * accum
-        # we recommend an effective batch size of 8
-        batch=4,         # for training
-        accum=2,         # gradient accumulation
-
-        val_batch=16,    # batch size for evaluation
-        epochs=10,       # training epochs
-        lr=3e-4,         # recommended learning rate
-        seed=42,         # random seed
-        deepspeed=True,  # if gpu is large enough disable deepspeed for training speedup
-        gpu=1,            # gpu selection (1 for first gpu)
-        pretrained_model="Rostlab/prot_t5_base_mt_uniref50"
-        ):
-
-    # Set gpu device
+    train_df,        # training data
+    valid_df,        # validation data
+    num_labels=3,    # number of classes
+    batch=4,         # for training
+    accum=2,         # gradient accumulation
+    val_batch=16,    # batch size for evaluation
+    epochs=10,       # training epochs
+    lr=3e-4,         # recommended learning rate
+    seed=42,         # random seed
+    deepspeed=True,  # if the GPU is large enough, disable deepspeed for training speedup
+    gpu=1,           # GPU selection (1 for the first GPU)
+    dropout=0.2,     # Dropout rate
+    pretrained_model="Rostlab/prot_t5_base_mt_uniref50"
+):
+    # Set GPU device
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu-1)
 
     # Set all random seeds
     set_seeds(seed)
 
-    # load model
-    model, tokenizer = PT5_classification_model(num_labels=num_labels, pretrained_model=pretrained_model)
+    # Load model
+    model, tokenizer = PT5_classification_model(dropout, num_labels, pretrained_model)
 
     # Preprocess inputs
     # Replace uncommon AAs with "X"
@@ -122,7 +115,6 @@ def train_per_residue(
         save_strategy="no",
         learning_rate=lr,
         per_device_train_batch_size=batch,
-        # per_device_eval_batch_size=val_batch,
         per_device_eval_batch_size=batch,
         gradient_accumulation_steps=accum,
         num_train_epochs=epochs,
@@ -132,7 +124,6 @@ def train_per_residue(
 
     # Metric definition for validation data
     def compute_metrics(eval_pred):
-
         metric = load("accuracy")
         predictions, labels = eval_pred
 
@@ -146,7 +137,7 @@ def train_per_residue(
 
         return metric.compute(predictions=predictions, references=labels)
 
-    # For token classification we need a data collator here to pad correctly
+    # For token classification, we need a data collator here to pad correctly
     data_collator = DataCollatorForTokenClassification(tokenizer)
 
     # Trainer
