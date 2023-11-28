@@ -24,4 +24,4 @@ jobs:
       run: pytest
 
     - name: Check code style
-      run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --extend-ignore=E402
+      run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --extend-ignore=E402,F811
