@@ -9,9 +9,9 @@ from src.model.config_t5 import ds_config
 from evaluate import load
 
 
-def load_model_T5(filepath, num_labels, pretrained_model):
+def load_model_T5(filepath, num_labels, pretrained_model, dropout):
     # Load a new model
-    model, tokenizer = PT5_classification_model(num_labels, pretrained_model)
+    model, tokenizer = PT5_classification_model(dropout, num_labels, pretrained_model)
 
     # Load the non-frozen parameters from the saved file
     non_frozen_params = torch.load(filepath)

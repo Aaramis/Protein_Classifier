@@ -110,18 +110,18 @@ def case_T5(args: Namespace, fam2label):
         save_model_T5(model, model_file)
 
     if args.eval:
-        tokenizer, model = load_model_T5(model_file, args.num_classes, args.pretrained_model)
+        tokenizer, model = load_model_T5(model_file, args.num_classes, args.pretrained_model, args.dropout)
         my_test = all_data[all_data.dataset == "test"].reset_index(drop=True)
         evaluate_t5(model, tokenizer, my_test)
 
     # Predict 1 sequence
     if args.predict and args.sequence:
-        tokenizer, model = load_model_T5(model_file, args.num_classes, args.pretrained_model)
+        tokenizer, model = load_model_T5(model_file, args.num_classes, args.pretrained_model, args.dropout)
         predict_one_sequence_t5(model, tokenizer, args.sequence, fam2label, True)
 
     # Predict multiple sequences
     if args.predict and args.csv:
-        tokenizer, model = load_model_T5(model_file, args.num_classes, args.pretrained_model)
+        tokenizer, model = load_model_T5(model_file, args.num_classes, args.pretrained_model, args.dropout)
         predict_csv_t5(model, tokenizer, args.csv, args.output_path, fam2label)
 
 
