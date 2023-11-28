@@ -7,7 +7,7 @@ from src.model.lambda_layer import Lambda
 
 
 class ProtCNN(pl.LightningModule):
-    def __init__(self, num_classes):
+    def __init__(self, momentum: int = 0.9, weight_decay: int = 1e-2, lr: int = 1e-2, num_classes: int = 16652):
         super().__init__()
         self.model = torch.nn.Sequential(
             torch.nn.Conv1d(22, 128, kernel_size=1, padding=0, bias=False),
@@ -17,6 +17,10 @@ class ProtCNN(pl.LightningModule):
             Lambda(lambda x: x.flatten(start_dim=1)),
             torch.nn.Linear(7680, num_classes),
         )
+
+        self.momentum = momentum
+        self.weight_decay = weight_decay
+        self.lr = lr
 
         self.train_acc = torchmetrics.Accuracy(task='multiclass', num_classes=num_classes)
         self.valid_acc = torchmetrics.Accuracy(task='multiclass', num_classes=num_classes)
@@ -46,7 +50,7 @@ class ProtCNN(pl.LightningModule):
         return acc
 
     def configure_optimizers(self):
-        optimizer = torch.optim.SGD(self.parameters(), lr=1e-2, momentum=0.9, weight_decay=1e-2)
+        optimizer = torch.optim.SGD(self.parameters(), lr=self.lr, momentum=self.momentum, weight_decay=self.weight_decay)
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(
             optimizer, milestones=[5, 8, 10, 12, 14, 16, 18, 20], gamma=0.9
         )

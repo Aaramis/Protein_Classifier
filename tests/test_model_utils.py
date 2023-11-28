@@ -5,7 +5,7 @@ sys.path.append(f"{os.getcwd()}")
 
 import torch
 from collections import OrderedDict
-from src.model.utils import (
+from src.model.utils_cnn import (
     get_last_layer,
     get_num_classes,
     find_key_by_value,

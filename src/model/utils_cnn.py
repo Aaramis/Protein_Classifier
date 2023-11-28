@@ -2,6 +2,7 @@ from src.model.protein_cnn import ProtCNN
 from collections import OrderedDict
 from src.log import write_logs, LogStatus
 import torch
+import os
 from typing import Optional, Union, Dict
 
 
@@ -52,11 +53,11 @@ def load_model(model_path: str, model_name: str) -> Optional[ProtCNN]:
     """
     write_logs("Loading model", LogStatus.INFO, False)
 
-    if model_path and model_name:
-        file_path = f"{model_path}/{model_name}"
-    else:
-        write_logs("Model not findable", LogStatus.CRITICAL, False)
-        return None
+    file_path = f"{model_path}/{model_name}"
+
+    if not os.path.isfile(file_path):
+        write_logs(f"'{file_path}' is not a valid. EXIT", LogStatus.CRITICAL, True)
+        exit()
 
     try:
         pretrained_state_dict = torch.load(file_path)
@@ -68,7 +69,7 @@ def load_model(model_path: str, model_name: str) -> Optional[ProtCNN]:
     num_classes = get_num_classes(pretrained_state_dict, last_layer)
 
     if num_classes:
-        prot_cnn = ProtCNN(num_classes)
+        prot_cnn = ProtCNN(num_classes=num_classes)
         prot_cnn.load_state_dict(pretrained_state_dict)
         return prot_cnn
 

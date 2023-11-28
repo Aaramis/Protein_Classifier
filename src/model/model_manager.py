@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from src.log import write_logs, check_directory, LogStatus
-from src.model.utils import find_key_by_value
+from src.model.utils_cnn import find_key_by_value
 from argparse import Namespace
 
 

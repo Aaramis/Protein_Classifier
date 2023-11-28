@@ -10,3 +10,9 @@ scikit-learn
 rich
 pytest
 flake8
+transformers
+datasets
+SentencePiece
+evaluate
+accelerate>=0.3.0
+deepspeed
