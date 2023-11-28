@@ -12,12 +12,40 @@ from src.log import write_logs, LogStatus
 def reader(partition: str, data_path: Union[str, Path]) -> Tuple[pd.Series, pd.Series]:
     write_logs(f"Loading Data {partition}", LogStatus.INFO, True)
     data = []
+
+    if not os.path.isdir(os.path.join(data_path, partition)):
+        write_logs(f"'{os.path.join(data_path, partition)}' is not a valid. EXIT", LogStatus.CRITICAL, True)
+        exit()
+
     for file_name in os.listdir(os.path.join(data_path, partition)):
         with open(os.path.join(data_path, partition, file_name)) as file:
             data.append(pd.read_csv(file, index_col=None, usecols=["sequence", "family_accession"]))
 
     all_data = pd.concat(data)
     return all_data["sequence"], all_data["family_accession"]
+
+
+def reader_T5(data_path: str, fam2label) -> pd.DataFrame:
+    data = []
+
+    for split in ["train", "test", "dev"]:
+        for file_name in os.listdir(os.path.join(data_path, split)):
+            with open(os.path.join(data_path, split, file_name)) as file:
+                data_points = pd.read_csv(file, index_col=None, usecols=["sequence", "family_accession"])
+
+            data_points["dataset"] = split
+            data_points["label"] = data_points["family_accession"].map(fam2label)
+
+            data.append(data_points)
+
+    all_data = pd.concat(data)
+    all_data['validation'] = all_data['dataset'].apply(lambda x: x == 'dev')
+
+    # Drop rows with NaN values
+    all_data = all_data.dropna()
+    all_data = all_data.reset_index(drop=True)
+
+    return all_data
 
 
 def build_labels(targets: pd.Series) -> Dict[Union[str, int], int]:
