@@ -139,9 +139,11 @@ def main():
     if args.save_plots or args.display_plots:
         visualize_plots(amino_acid_counter, args)
 
+    # CNN
     if args.model_type == "CNN":
         case_cnn(args, word2id, fam2label)
 
+    # T5
     if args.model_type == 'T5':
         case_T5(args, fam2label)
 
